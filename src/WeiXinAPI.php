@@ -4,8 +4,10 @@ namespace Ubi\Utils;
 
 class WeiXinAPI
 {
+    private $agentId;
     private $corpId;
     private $corpSecret;
+    private $accessToken;
     private $httpClient;
 
     function __construct()
@@ -20,9 +22,20 @@ class WeiXinAPI
      */
     public function setParams($params)
     {
+        $this->agentId    = $params['agentId'];
         $this->corpId     = $params['corpId'];
         $this->corpSecret = $params['corpSecret'];
 
+        return $this;
+    }
+
+    public function setAccessToken($accessToken)
+    {
+        if (empty($accessToken)) {
+            return false;
+        }
+
+        $this->accessToken = $accessToken;
         return $this;
     }
 
@@ -133,13 +146,12 @@ class WeiXinAPI
 
     /**
      * 获取企业微信服务器的ip段
-     * @param $accessToken
      * @return mixed ["101.226.103.*", "101.226.62.*"]
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getCallbackIP($accessToken)
+    public function getCallbackIP()
     {
-        return $this->getIP('getCallbackIP', $accessToken);
+        return $this->getIP('getCallbackIP');
     }
 
     /**
@@ -147,13 +159,100 @@ class WeiXinAPI
      * @return mixed ["182.254.11.176", "182.254.78.66"]
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getAPIDomainIP($accessToken)
+    public function getAPIDomainIP()
     {
-        return $this->getIP('getAPIDomainIP', $accessToken);
+        return $this->getIP('getAPIDomainIP');
     }
 
-    private function getIP($type = 'getAPIDomainIP', $accessToken)
+    /**
+     * 向指定用户发送文本消息
+     * @param $message
+     * @param $users
+     * @param bool $isSafe
+     * @return array
+     * @throws \Exception
+     */
+    public function sendTextMessageToUsers($message, $users, $isSafe = false)
     {
+        $messageInfo = $this->makeTextMessage($message, $users, [], [], $isSafe);
+        $response = $this->sendMessage($messageInfo);
+        return ['invaliduser' => $response['invaliduser']];
+    }
+
+    /**
+     * 向指定部门发送文本消息
+     * @param $message
+     * @param $parties
+     * @param bool $isSafe
+     * @return array
+     * @throws \Exception
+     */
+    public function sendTextMessageToParties($message, $parties, $isSafe = false)
+    {
+        $messageInfo = $this->makeTextMessage($message, [], $parties, [], $isSafe);
+        $response = $this->sendMessage($messageInfo);
+        return ['invalidparty' => $response['invalidparty']];
+    }
+
+    /**
+     * 向指定标签的成员发送文本消息
+     * @param $message
+     * @param $tags
+     * @param bool $isSafe
+     * @return array
+     * @throws \Exception
+     */
+    public function sendTextMessageToTags($message, $tags, $isSafe = false)
+    {
+        $messageInfo = $this->makeTextMessage($message, [], [], $tags, $isSafe);
+        $response    = $this->sendMessage($messageInfo);
+        return ['invalidtag' => $response['invalidtag']];
+    }
+
+    private function makeTextMessage($message, $users, $parties, $tags, $isSafe)
+    {
+        return [
+            'touser'  => explode('|', $users),
+            'toparty' => explode('|', $parties),
+            'totag'   => explode('|', $tags),
+            'msgtype' => 'text',
+            'agentid' => $this->agentId,
+            'text'    => ['content' => $message],
+            'safe'    => $isSafe ? 1 : 0
+        ];
+    }
+
+    private function sendMessage($message)
+    {
+        $accessToken = $this->accessToken;
+        if (empty($accessToken)) {
+            throw new \Exception("微信 API 接口调用失败: accessToken 为空");
+        }
+
+        if (empty($message)) {
+            throw new \Exception("微信 API 接口调用失败: 消息内容为空");
+        }
+
+        $api = $this->getAPI('sendMessage');
+        if (empty($api)) {
+            throw new \Exception("微信 API 接口调用失败: 无法获取发送消息接口请求地址");
+        }
+
+        $params         = [
+            'access_token' => $accessToken
+        ];
+        $originResponse = $this->httpClient->post($api, $params, $message);
+        $response       = $this->handleResponse($originResponse);
+        return [
+            'invaliduser'  => explode('|', $response->invaliduser),
+            'invalidparty' => explode('|', $response->invalidparty),
+            'invalidtag'   => explode('|', $response->invalidtag),
+        ];
+    }
+
+    private function getIP($type = 'getAPIDomainIP')
+    {
+        $accessToken = $this->accessToken;
         if (empty($accessToken)) {
             throw new \Exception("微信 API 接口调用失败: 缺少必要的参数 accessToken");
         }
