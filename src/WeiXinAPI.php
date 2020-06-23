@@ -174,7 +174,7 @@ class WeiXinAPI
      */
     public function sendTextMessageToUsers($message, $users, $isSafe = false)
     {
-        $messageInfo = $this->makeTextMessage($message, $users, [], [], $isSafe);
+        $messageInfo = $this->makeMessage($message, 'text', $users, [], [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
         return ['invaliduser' => $response['invaliduser']];
     }
@@ -189,7 +189,7 @@ class WeiXinAPI
      */
     public function sendTextMessageToParties($message, $parties, $isSafe = false)
     {
-        $messageInfo = $this->makeTextMessage($message, [], $parties, [], $isSafe);
+        $messageInfo = $this->makeMessage($message, 'text', [], $parties, [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
         return ['invalidparty' => $response['invalidparty']];
     }
@@ -204,23 +204,76 @@ class WeiXinAPI
      */
     public function sendTextMessageToTags($message, $tags, $isSafe = false)
     {
-        $messageInfo = $this->makeTextMessage($message, [], [], $tags, $isSafe);
+        $messageInfo = $this->makeMessage($message, 'text', [], [], $tags, $isSafe);
         $response    = $this->sendMessage($messageInfo);
         return ['invalidtag' => $response['invalidtag']];
     }
 
-    private function makeTextMessage($message, $users, $parties, $tags, $isSafe)
+    /**
+     * 给指定用户发送 markdown 格式的消息
+     * @param $message
+     * @param $users [user1, user2, user3] | @all
+     * @param bool $isSafe
+     * @return array
+     * @throws \Exception
+     */
+    public function sendMarkDownMessageToUsers($message, $users, $isSafe = false)
     {
-        $toUser = is_array($users) ? explode('|', $users) : $users;
-        return [
-            'touser'  => $toUser,
+        $messageInfo = $this->makeMessage($message, 'markdown', $users, [], [], $isSafe);
+        $response    = $this->sendMessage($messageInfo);
+        return ['invaliduser' => $response['invaliduser']];
+    }
+
+    /**
+     * 给指定部门发送 markdown 格式的消息
+     * @param $message
+     * @param $parties
+     * @param bool $isSafe
+     * @return array
+     * @throws \Exception
+     */
+    public function sendMarkDownMessageToParties($message, $parties, $isSafe = false)
+    {
+        $messageInfo = $this->makeMessage($message, 'markdown', [], $parties, [], $isSafe);
+        $response    = $this->sendMessage($messageInfo);
+        return ['invalidparty' => $response['invalidparty']];
+    }
+
+    /**
+     * 给指定标签的用户发送 markdown 格式的消息
+     * @param $message
+     * @param $tags
+     * @param bool $isSafe
+     * @return array
+     * @throws \Exception
+     */
+    public function sendMarkDownMessageToTags($message, $tags, $isSafe = false)
+    {
+        $messageInfo = $this->makeMessage($message, 'markdown', [], [], $tags, $isSafe);
+        $response    = $this->sendMessage($messageInfo);
+        return ['invalidtag' => $response['invalidtag']];
+    }
+
+    private function makeMessage($message, $type = 'text', $users, $parties, $tags, $isSafe)
+    {
+        $messageInfo = [
+            'touser'  => is_array($users) ? explode('|', $users) : $users,
             'toparty' => explode('|', $parties),
             'totag'   => explode('|', $tags),
-            'msgtype' => 'text',
+            'msgtype' => $type,
             'agentid' => $this->agentId,
-            'text'    => ['content' => $message],
             'safe'    => $isSafe ? 1 : 0
         ];
+
+        if ($type == 'text') {
+            $messageInfo['text'] = ['content' => $message];
+        }
+
+        if ($type == 'markdown') {
+            $messageInfo['markdown'] = ['content' => $message];
+        }
+
+        return $messageInfo;
     }
 
     private function sendMessage($message)
