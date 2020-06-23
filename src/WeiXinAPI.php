@@ -175,7 +175,7 @@ class WeiXinAPI
     public function sendTextMessageToUsers($message, $users, $isSafe = false)
     {
         $messageInfo = $this->makeTextMessage($message, $users, [], [], $isSafe);
-        $response = $this->sendMessage($messageInfo);
+        $response    = $this->sendMessage($messageInfo);
         return ['invaliduser' => $response['invaliduser']];
     }
 
@@ -190,7 +190,7 @@ class WeiXinAPI
     public function sendTextMessageToParties($message, $parties, $isSafe = false)
     {
         $messageInfo = $this->makeTextMessage($message, [], $parties, [], $isSafe);
-        $response = $this->sendMessage($messageInfo);
+        $response    = $this->sendMessage($messageInfo);
         return ['invalidparty' => $response['invalidparty']];
     }
 
@@ -211,8 +211,9 @@ class WeiXinAPI
 
     private function makeTextMessage($message, $users, $parties, $tags, $isSafe)
     {
+        $toUser = is_array($users) ? explode('|', $users) : $users;
         return [
-            'touser'  => explode('|', $users),
+            'touser'  => $toUser,
             'toparty' => explode('|', $parties),
             'totag'   => explode('|', $tags),
             'msgtype' => 'text',
