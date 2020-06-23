@@ -14,15 +14,14 @@ class WeiXinAPI
     }
 
     /**
-     * 设置 corpId，corpSecret，用于获取 accessToken
-     * @param $corpId
-     * @param $corpSecret
+     * 设置一些必要的参数
+     * @param $params
      * @return $this
      */
-    public function setCorp($corpId, $corpSecret)
+    public function setParams($params)
     {
-        $this->corpId     = $corpId;
-        $this->corpSecret = $corpSecret;
+        $this->corpId     = $params['corpId'];
+        $this->corpSecret = $params['corpSecret'];
 
         return $this;
     }
@@ -94,6 +93,12 @@ class WeiXinAPI
         return $decryptMsg;
     }
 
+    /**
+     * 解析用户发送的消息内容
+     * @param $params
+     * @return mixed
+     * @throws \Exception
+     */
     public function decryptUserMsg($params)
     {
         if (strlen($params['encodingAesKey']) != 43) {
@@ -224,6 +229,7 @@ class WeiXinAPI
             'accessToken'    => 'cgi-bin/gettoken', // 获取 accessToken
             'getCallbackIP'  => 'cgi-bin/getcallbackip', // 获取企业微信服务器的 ip 段
             'getAPIDomainIP' => 'cgi-bin/get_api_domain_ip', // 获取企业微信API域名IP段
+            'sendMessage'    => 'cgi-bin/message/send', // 发送应用消息
         ];
 
         $host = "https://qyapi.weixin.qq.com";
