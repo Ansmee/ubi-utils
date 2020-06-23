@@ -119,11 +119,10 @@ class WeiXinAPI
         }
 
         // 解密加密之后的消息内容
-        $decryptMsg          = $this->decryptMsg($params['encodingAesKey'], $params['encrypt'], $this->corpId);
-        $msgXml              = simplexml_load_string($decryptMsg);
-        $message['userName'] = (string)$msgXml->FromUserName;
-        $message['content']  = (string)$msgXml->Content;
+        $decryptMsg = $this->decryptMsg($params['encodingAesKey'], $params['encrypt'], $this->corpId);
+        $xmlMsg     = simplexml_load_string($decryptMsg);
 
+        $message = $this->getMessage($xmlMsg);
         return $message;
     }
 
@@ -200,6 +199,19 @@ class WeiXinAPI
         }
 
         return $response;
+    }
+
+    private function getMessage($xmlMsg)
+    {
+        $message['userName']   = (string)$xmlMsg->FromUserName;
+        $message['createTime'] = (string)$xmlMsg->CreateTime;
+        $message['type']       = (string)$xmlMsg->MsgType;
+
+        if ($message['type'] == 'text') {
+            $message['text'] = (string)$xmlMsg->Content;
+        }
+
+        return $message;
     }
 
     private function getAPI($pathName)
