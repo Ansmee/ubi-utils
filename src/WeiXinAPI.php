@@ -167,7 +167,7 @@ class WeiXinAPI
     /**
      * 向指定用户发送文本消息
      * @param $message
-     * @param $users
+     * @param $users [user1, user2, user3] || @all
      * @param bool $isSafe
      * @return array
      * @throws \Exception
