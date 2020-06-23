@@ -2,8 +2,6 @@
 
 namespace Ubi\Utils;
 
-// include_once "../library/weworkapi_php/callback/pkcs7Encoder.php";
-
 class WeiXinAPI
 {
     private $corpId;
@@ -78,19 +76,12 @@ class WeiXinAPI
      */
     public function decryptCallBackMsg($params)
     {
-        $token          = $params['token'];
-        $encodingAesKey = $params['encodingAesKey'];
-        $msgSignature   = $params['msgSignature'];
-        $timestamp      = $params['timestamp'];
-        $nonce          = $params['nonce'];
-        $echostr        = $params['echostr'];
-
-        if (strlen($encodingAesKey) != 43) {
+        if (strlen($params['encodingAesKey']) != 43) {
             throw new \Exception("微信 API 接口调用失败: encodingAesKey 不合法");
         }
 
-        if (empty($token) || empty($encodingAesKey) || empty($msgSignature) || empty($timestamp) || empty($nonce) || empty($echostr)) {
-            throw new \Exception("微信 API 接口调用失败: 缺少必要的参数，token: {$token}, encodingAesKey: {$encodingAesKey}, msgSignature: {$msgSignature}，timestamp: {$timestamp}，nonce: {$nonce}，echostr: {$echostr}");
+        if (empty($params['token']) || empty($params['encodingAesKey']) || empty($params['msgSignature']) || empty($params['timestamp']) || empty($params['nonce']) || empty($params['encrypt'])) {
+            throw new \Exception("微信 API 接口调用失败: 缺少必要的参数，token: {$params['token']}, encodingAesKey: {$params['encodingAesKey']}, msgSignature: {$params['msgSignature']}，timestamp: {$params['timestamp']}，nonce: {$params['nonce']}，encrypt: {$params['encrypt']}");
         }
 
         // 验证签名是否合法
@@ -99,8 +90,41 @@ class WeiXinAPI
         }
 
         // 解密加密之后的消息内容
-        $decryptMsg = $this->decryptMsg($encodingAesKey);
+        $decryptMsg = $this->decryptMsg($params['encodingAesKey'], $params['encrypt'], $this->corpId);
         return $decryptMsg;
+    }
+
+    public function decryptUserMsg($params)
+    {
+        if (strlen($params['encodingAesKey']) != 43) {
+            throw new \Exception("微信 API 接口调用失败: encodingAesKey 不合法");
+        }
+
+        if (empty($params['token']) || empty($params['encodingAesKey']) || empty($params['msgSignature']) || empty($params['timestamp']) || empty($params['nonce']) || empty($params['data'])) {
+            throw new \Exception("微信 API 接口调用失败: 缺少必要的参数，token: {$params['token']}, encodingAesKey: {$params['encodingAesKey']}, msgSignature: {$params['msgSignature']}，timestamp: {$params['timestamp']}，nonce: {$params['nonce']}，data: {$params['data']}");
+        }
+
+        $xmlparse = new \XMLParse();
+        $result   = $xmlparse->extract($params['data']);
+
+        if ($result[0] != 0) {
+            throw new \Exception("微信 API 接口调用失败: 消息内容解析失败");
+        }
+
+        $params['encrypt'] = $result[1];
+
+        // 验证签名是否合法
+        if (!$this->verifySignature($params)) {
+            throw new \Exception("微信 API 接口调用失败: 回调消息签名验证失败");
+        }
+
+        // 解密加密之后的消息内容
+        $decryptMsg          = $this->decryptMsg($params['encodingAesKey'], $params['encrypt'], $this->corpId);
+        $msgXml              = simplexml_load_string($decryptMsg);
+        $message['userName'] = (string)$msgXml->FromUserName;
+        $message['content']  = (string)$msgXml->Content;
+
+        return $message;
     }
 
     /**
@@ -135,7 +159,7 @@ class WeiXinAPI
             throw new \Exception("微信 API 接口调用失败: 无法获取 {$type} 接口请求地址");
         }
 
-        $params         = [
+        $params = [
             'access_token' => $accessToken
         ];
 
@@ -147,7 +171,8 @@ class WeiXinAPI
 
     private function verifySignature($params)
     {
-        $encryptArr = [$params['token'], $params['timestamp'], $params['nonce'], $params['echostr']];
+        $encryptArr = [$params['encrypt'], $params['token'], $params['timestamp'], $params['nonce']];
+
         sort($encryptArr, SORT_STRING);
         $encryptStr      = implode('', $encryptArr);
         $devMsgSignature = sha1($encryptStr);
@@ -156,11 +181,11 @@ class WeiXinAPI
         return $msgSignature === $devMsgSignature;
     }
 
-    private function decryptMsg($params)
+    private function decryptMsg($encodingAesKey, $encrypt, $receiveId)
     {
-        $decrypter = new \Prpcrypt($params['encodingAesKey']);
+        $decrypter = new \Prpcrypt($encodingAesKey);
 
-        $result = $decrypter->decrypt($params['echostr'], $this->corpId);
+        $result = $decrypter->decrypt($encrypt, $receiveId);
         if ($result[0] != 0) {
             throw new \Exception("微信 API 接口调用失败: 消息解密失败");
         }
