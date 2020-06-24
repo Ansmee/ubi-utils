@@ -43,10 +43,11 @@ class HttpClient
                 // multi file的传输格式需要定制
                 foreach ($body as $item) {
                     $items[] = [
-                        'name'     => $item['name'],
-                        'contents' => $item['contents'],
-                        'filename' => $item['filename'],
-                        'headers'  => [
+                        'name'       => isset($item['name']) ? $item['name'] : '',
+                        'contents'   => isset($item['contents']) ? $item['contents'] : '',
+                        'filename'   => isset($item['filename']) ? $item['filename'] : '',
+                        'filelength' => isset($item['filelength']) ? $item['filelength'] : '',
+                        'headers'    => [
                             'content-type' => 'multipart/form-data',
                             'accept'       => 'application/json'
                         ]

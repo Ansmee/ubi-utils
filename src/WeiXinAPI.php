@@ -159,10 +159,53 @@ class WeiXinAPI
         return $this->getIP('getAPIDomainIP');
     }
 
-    public function mediaUpload($type, $media)
+    public function mediaUpload($type, $mediaPath)
     {
-        $accessToken = $this->accessToken;
+        if (empty($type)) {
+            throw new \Exception("微信 API 接口调用失败: 素材类型为空");
+        }
 
+        if (!in_array($type, ['image', 'voice', 'video', 'file'])) {
+            throw new \Exception("微信 API 接口调用失败: 素材类型不合法，仅支持（image, voice, video, file）");
+        }
+
+        if (!file_exists($mediaPath)) {
+            throw new \Exception("微信 API 接口调用失败: 素材不存在");
+        }
+
+        $accessToken = $this->accessToken;
+        if (empty($accessToken)) {
+            throw new \Exception("微信 API 接口调用失败: accessToken 为空");
+        }
+
+        $api = $this->getAPI('mediaUpload');
+        if (empty($api)) {
+            throw new \Exception("微信 API 接口调用失败: 无法获取发送消息接口请求地址");
+        }
+
+        $params = [
+            'access_token' => $accessToken,
+            'type'         => $type
+        ];
+
+        $formData = [
+            [
+                'name'       => $type,
+                'contents'   => fopen($mediaPath, 'r'),
+                'filename'   => pathinfo($mediaPath, PATHINFO_BASENAME),
+                'filelength' => filesize($mediaPath)
+            ]
+        ];
+
+        $originResponse = $this->httpClient->postFormData($api, $formData, $params, true);
+        $response       = $this->handleResponse($originResponse);
+
+        if ($response === false) {
+            return ['code' => 2, 'msg' => 'accessToken 已过期，请重新获取'];
+        }
+
+        $data = ['mediaId' => $response->media_id, 'createdAt' => $response->created_at];
+        return ['code' => 1, 'msg' => 'ok', 'data' => $data];
     }
 
     /**
@@ -309,7 +352,7 @@ class WeiXinAPI
             'invalidtag'   => explode('|', $response->invalidtag),
         ];
 
-        return ['code' => 1, 'msg'=> 'ok', 'data' => $data];
+        return ['code' => 1, 'msg' => 'ok', 'data' => $data];
     }
 
     /**
