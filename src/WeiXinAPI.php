@@ -77,7 +77,7 @@ class WeiXinAPI
 
     /**
      * 解密回调信息，并进行密文比对验证，通过才可以进行之后的调用
-     * @param $params
+     * @param $params ['token', 'encodingAesKey', 'msgSignature', 'timestamp', 'nonce', 'encrypt']
      * @return mixed
      * @throws \Exception
      */
@@ -103,7 +103,7 @@ class WeiXinAPI
 
     /**
      * 解析用户发送的消息内容
-     * @param $params
+     * @param $params ['token', 'encodingAesKey', 'msgSignature', 'timestamp', 'nonce', 'data']
      * @return mixed
      * @throws \Exception
      */
@@ -168,7 +168,7 @@ class WeiXinAPI
     /**
      * 向指定用户发送文本消息
      * @param $message
-     * @param $users [user1, user2, user3] || @all
+     * @param $users [user1, user2, user3] | @all
      * @param bool $isSafe
      * @return array
      * @throws \Exception
@@ -183,7 +183,7 @@ class WeiXinAPI
     /**
      * 向指定部门发送文本消息
      * @param $message
-     * @param $parties
+     * @param $parties [party1, party2]
      * @param bool $isSafe
      * @return array
      * @throws \Exception
@@ -198,7 +198,7 @@ class WeiXinAPI
     /**
      * 向指定标签的成员发送文本消息
      * @param $message
-     * @param $tags
+     * @param $tags [tag1, tag2]
      * @param bool $isSafe
      * @return array
      * @throws \Exception
@@ -228,7 +228,7 @@ class WeiXinAPI
     /**
      * 给指定部门发送 markdown 格式的消息
      * @param $message
-     * @param $parties
+     * @param $parties [party1, party2]
      * @param bool $isSafe
      * @return array
      * @throws \Exception
@@ -243,7 +243,7 @@ class WeiXinAPI
     /**
      * 给指定标签的用户发送 markdown 格式的消息
      * @param $message
-     * @param $tags
+     * @param $tags [tag1, tag2]
      * @param bool $isSafe
      * @return array
      * @throws \Exception
