@@ -2,8 +2,6 @@
 
 namespace Ubi\Utils;
 
-use function GuzzleHttp\Psr7\build_query;
-
 class WeiXinAPI
 {
     private $agentId;
@@ -211,6 +209,7 @@ class WeiXinAPI
     }
 
     /**
+     * 获取临时素材
      * @param $mediaId
      * @return array ['code' => '0: failure, 1: success, 2: accessToken expired', 'msg' => 'msg', 'data' => 'filePath']
      * @throws \GuzzleHttp\Exception\GuzzleException
