@@ -22,20 +22,11 @@ class WeiXinAPI
      */
     public function setParams($params)
     {
-        $this->agentId    = $params['agentId'];
-        $this->corpId     = $params['corpId'];
-        $this->corpSecret = $params['corpSecret'];
+        $this->agentId     = $params['agentId'] ? $params['agentId'] : $this->agentId;
+        $this->corpId      = $params['corpId'] ? $params['corpId'] : $this->corpId;
+        $this->corpSecret  = $params['corpSecret'] ? $params['corpSecret'] : $this->corpSecret;
+        $this->accessToken = $params['accessToken'] ? $params['accessToken'] : $this->accessToken;
 
-        return $this;
-    }
-
-    public function setAccessToken($accessToken)
-    {
-        if (empty($accessToken)) {
-            return false;
-        }
-
-        $this->accessToken = $accessToken;
         return $this;
     }
 
@@ -47,6 +38,7 @@ class WeiXinAPI
      *      'accessToken' => '获取到的凭证，最长为512字节',
      *      'expiresIn' => '凭证的有效时间（秒）'
      * ]
+     * @return array ['code' => '0: failure, 1: success, 2: accessToken expired', 'msg' => 'msg', 'data' => 'data']
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getAccessToken()
@@ -72,12 +64,15 @@ class WeiXinAPI
         $originResponse = $this->httpClient->get($api, $params);
         $response       = $this->handleResponse($originResponse);
 
+        if ($response === false) {
+            return ['code' => 2, 'msg' => 'accessToken 已过期，请重新获取'];
+        }
         $data = [
             'accessToken' => $response->access_token,
             'expiresIn'   => $response->expires_in,
         ];
 
-        return $data;
+        return ['code' => 1, 'msg' => 'ok', 'data' => $data];
     }
 
     /**
@@ -146,7 +141,7 @@ class WeiXinAPI
 
     /**
      * 获取企业微信服务器的ip段
-     * @return mixed ["101.226.103.*", "101.226.62.*"]
+     * @return array ['code' => '0: failure, 1: success, 2: accessToken expired', 'msg' => 'msg', 'data' => ["101.226.103.*", "101.226.62.*"]]
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getCallbackIP()
@@ -156,12 +151,18 @@ class WeiXinAPI
 
     /**
      * 获取企业微信API域名IP段
-     * @return mixed ["182.254.11.176", "182.254.78.66"]
+     * @return array ['code' => '0: failure, 1: success, 2: accessToken expired', 'msg' => 'msg', 'data' => ["182.254.11.176", "182.254.78.66"]]
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getAPIDomainIP()
     {
         return $this->getIP('getAPIDomainIP');
+    }
+
+    public function mediaUpload($type, $media)
+    {
+        $accessToken = $this->accessToken;
+
     }
 
     /**
@@ -176,7 +177,7 @@ class WeiXinAPI
     {
         $messageInfo = $this->makeMessage($message, 'text', $users, [], [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
-        return ['invaliduser' => $response['invaliduser']];
+        return $response;
     }
 
     /**
@@ -191,7 +192,7 @@ class WeiXinAPI
     {
         $messageInfo = $this->makeMessage($message, 'text', [], $parties, [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
-        return ['invalidparty' => $response['invalidparty']];
+        return $response;
     }
 
     /**
@@ -206,7 +207,7 @@ class WeiXinAPI
     {
         $messageInfo = $this->makeMessage($message, 'text', [], [], $tags, $isSafe);
         $response    = $this->sendMessage($messageInfo);
-        return ['invalidtag' => $response['invalidtag']];
+        return $response;
     }
 
     /**
@@ -297,13 +298,25 @@ class WeiXinAPI
         ];
         $originResponse = $this->httpClient->post($api, $params, $message);
         $response       = $this->handleResponse($originResponse);
-        return [
+
+        if ($response === false) {
+            return ['code' => 2, 'msg' => 'accessToken 已过期，请重新获取'];
+        }
+
+        $data = [
             'invaliduser'  => explode('|', $response->invaliduser),
             'invalidparty' => explode('|', $response->invalidparty),
             'invalidtag'   => explode('|', $response->invalidtag),
         ];
+
+        return ['code' => 1, 'msg'=> 'ok', 'data' => $data];
     }
 
+    /**
+     * @param string $type
+     * @return array ['code' => '0: failure, 1: success, 2: accessToken expired', 'msg' => 'msg', 'data' => 'data']
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     private function getIP($type = 'getAPIDomainIP')
     {
         $accessToken = $this->accessToken;
@@ -323,7 +336,11 @@ class WeiXinAPI
         $originResponse = $this->httpClient->get($api, $params);
         $response       = $this->handleResponse($originResponse);
 
-        return $response->ip_list;
+        if ($response === false) {
+            return ['code' => 2, 'msg' => 'accessToken 已过期，请重新获取'];
+        }
+
+        return ['code' => 1, 'msg' => 'ok', 'data' => $response->ip_list];
     }
 
     private function verifySignature($params)
@@ -353,6 +370,12 @@ class WeiXinAPI
     private function handleResponse($response)
     {
         if (isset($response->errcode) && 0 != $response->errcode) {
+
+            // accessToken 过期，需要重新获取
+            if (40014 == $response->errcode) {
+                return false;
+            }
+
             throw new \Exception("微信 API 接口调用失败: {$response->errmsg}");
         }
 
@@ -383,6 +406,7 @@ class WeiXinAPI
             'getCallbackIP'  => 'cgi-bin/getcallbackip', // 获取企业微信服务器的 ip 段
             'getAPIDomainIP' => 'cgi-bin/get_api_domain_ip', // 获取企业微信API域名IP段
             'sendMessage'    => 'cgi-bin/message/send', // 发送应用消息
+            'mediaUpload'    => 'cgi-bin/media/upload', // 上传临时素材
         ];
 
         $host = "https://qyapi.weixin.qq.com";
