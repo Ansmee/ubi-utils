@@ -15,10 +15,19 @@ use GuzzleHttp\Client;
  */
 class HttpClient
 {
-    private $timeout        = 30;
-    private $connectTimeOut = 30;
-    private $options        = [];
+    private $timeout         = 30;
+    private $connectTimeOut  = 30;
+    private $options         = [];
+    private $responseHeaders = [];
 
+    function __construct()
+    {
+        $this->resetResponse();
+    }
+
+    private function resetResponse(){
+        $this->responseHeaders = [];
+    }
     /**
      * @param $uri
      * @param array $params
@@ -31,6 +40,9 @@ class HttpClient
      */
     private function requestApi($uri, $params = [], $method = 'GET', $body = [], $isJson = true, $isMultiFile = false, $auth = [])
     {
+        // 先初始化返回头
+        $this->resetResponse();
+
         $client  = new Client(array_merge([], ['base_uri' => $uri], $auth));
         $options = ['query' => array_merge([], $params)];
 
@@ -68,6 +80,8 @@ class HttpClient
             $content  = $response->getBody()->getContents();
             $json     = json_decode($content);
 
+            $this->setResponseHeaders($response->getHeaders());
+
             if ($json && $content != $json) {
                 return $json;
             }
@@ -76,6 +90,16 @@ class HttpClient
         } catch (\Exception $exception) {
             throw new \Exception($exception->getMessage());
         }
+    }
+
+    public function getResponseHeaders()
+    {
+        return $this->responseHeaders;
+    }
+
+    private function setResponseHeaders($headers)
+    {
+        $this->responseHeaders = $headers;
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace Ubi\Utils;
 
+use function GuzzleHttp\Psr7\build_query;
+
 class WeiXinAPI
 {
     private $agentId;
@@ -22,10 +24,10 @@ class WeiXinAPI
      */
     public function setParams($params)
     {
-        $this->agentId     = $params['agentId'] ? $params['agentId'] : $this->agentId;
-        $this->corpId      = $params['corpId'] ? $params['corpId'] : $this->corpId;
-        $this->corpSecret  = $params['corpSecret'] ? $params['corpSecret'] : $this->corpSecret;
-        $this->accessToken = $params['accessToken'] ? $params['accessToken'] : $this->accessToken;
+        $this->agentId     = isset($params['agentId']) ? $params['agentId'] : $this->agentId;
+        $this->corpId      = isset($params['corpId']) ? $params['corpId'] : $this->corpId;
+        $this->corpSecret  = isset($params['corpSecret']) ? $params['corpSecret'] : $this->corpSecret;
+        $this->accessToken = isset($params['accessToken']) ? $params['accessToken'] : $this->accessToken;
 
         return $this;
     }
@@ -159,7 +161,7 @@ class WeiXinAPI
         return $this->getIP('getAPIDomainIP');
     }
 
-    public function mediaUpload($type, $mediaPath)
+    public function uploadMedia($type, $mediaPath)
     {
         if (empty($type)) {
             throw new \Exception("微信 API 接口调用失败: 素材类型为空");
@@ -178,9 +180,9 @@ class WeiXinAPI
             throw new \Exception("微信 API 接口调用失败: accessToken 为空");
         }
 
-        $api = $this->getAPI('mediaUpload');
+        $api = $this->getAPI('uploadMedia');
         if (empty($api)) {
-            throw new \Exception("微信 API 接口调用失败: 无法获取发送消息接口请求地址");
+            throw new \Exception("微信 API 接口调用失败: 无法获取素材上传接口请求地址");
         }
 
         $params = [
@@ -206,6 +208,57 @@ class WeiXinAPI
 
         $data = ['mediaId' => $response->media_id, 'createdAt' => $response->created_at];
         return ['code' => 1, 'msg' => 'ok', 'data' => $data];
+    }
+
+    /**
+     * @param $mediaId
+     * @return array ['code' => '0: failure, 1: success, 2: accessToken expired', 'msg' => 'msg', 'data' => 'filePath']
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function getMedia($mediaId)
+    {
+        if (empty($mediaId)) {
+            throw new \Exception("微信 API 接口调用失败: mediaId 为空");
+        }
+
+        $accessToken = $this->accessToken;
+        if (empty($accessToken)) {
+            throw new \Exception("微信 API 接口调用失败: accessToken 为空");
+        }
+
+        $api = $this->getAPI('getMedia');
+        if (empty($api)) {
+            throw new \Exception("微信 API 接口调用失败: 无法获取素材下载接口请求地址");
+        }
+
+        $params = [
+            'access_token' => $accessToken,
+            'media_id'     => $mediaId
+        ];
+
+
+        $originResponse = $this->httpClient->get($api, $params);
+        $response       = $this->handleResponse($originResponse);
+
+        if ($response === false) {
+            return ['code' => 2, 'msg' => 'accessToken 已过期，请重新获取'];
+        }
+
+        $headers                = $this->httpClient->getResponseHeaders();
+        $contentDispositions    = $headers['Content-disposition'];
+        $contentDisposition     = $contentDispositions[0];
+        $contentDispositionInfo = explode(';', $contentDisposition);
+        $fileInfo               = explode('=', trim(end($contentDispositionInfo)));
+        $fileName               = trim(end($fileInfo), '"');
+
+        $time        = time();
+        $tmpFilePath = "/tmp/{$time}_{$fileName}";
+        $res         = file_put_contents($tmpFilePath, $response);
+        if ($res) {
+            return ['code' => 1, 'msg' => 'ok', 'data' => $tmpFilePath];
+        }
+
+        return ['code' => 0, 'msg' => '文件获取失败，请重试'];
     }
 
     /**
@@ -449,7 +502,8 @@ class WeiXinAPI
             'getCallbackIP'  => 'cgi-bin/getcallbackip', // 获取企业微信服务器的 ip 段
             'getAPIDomainIP' => 'cgi-bin/get_api_domain_ip', // 获取企业微信API域名IP段
             'sendMessage'    => 'cgi-bin/message/send', // 发送应用消息
-            'mediaUpload'    => 'cgi-bin/media/upload', // 上传临时素材
+            'uploadMedia'    => 'cgi-bin/media/upload', // 上传临时素材
+            'getMedia'       => 'cgi-bin/media/get', // 获取临时素材
         ];
 
         $host = "https://qyapi.weixin.qq.com";

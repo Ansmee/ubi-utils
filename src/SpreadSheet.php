@@ -3,13 +3,13 @@
 namespace Ubi\Utils;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Spreadsheet as PHPSpreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Style;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-class MySpreadSheet
+class SpreadSheet
 {
     protected $spreadSheet;
 
@@ -31,14 +31,14 @@ class MySpreadSheet
     {
         ini_set('memory_limit', -1);
         set_time_limit(0);
-        $this->spreadSheet = new Spreadsheet();
+        $this->spreadSheet = new PHPSpreadsheet();
         $this->activeSheet = $this->spreadSheet->getActiveSheet();
         $this->setDefaultDimension();
     }
 
     /**
      * 获取初始化的实例
-     * @return Spreadsheet
+     * @return PHPSpreadsheet
      */
     public function getSpreadSheet()
     {
