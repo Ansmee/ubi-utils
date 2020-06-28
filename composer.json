@@ -4,9 +4,8 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "phpoffice/phpspreadsheet": "^1.13",
     "guzzlehttp/guzzle": "^6.5",
-    "phpoffice/phpspreadsheet": "^1.13"
+    "phpoffice/phpspreadsheet": "1.8.2"
   },
   "authors": [
     {
