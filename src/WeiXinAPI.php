@@ -20,14 +20,22 @@ class WeiXinAPI
      * @param $params
      * @return $this
      */
-    public function setParams($params)
+    public function setParams(array $params)
     {
-        $this->agentId     = isset($params['agentId']) ? $params['agentId'] : $this->agentId;
-        $this->corpId      = isset($params['corpId']) ? $params['corpId'] : $this->corpId;
-        $this->corpSecret  = isset($params['corpSecret']) ? $params['corpSecret'] : $this->corpSecret;
-        $this->accessToken = isset($params['accessToken']) ? $params['accessToken'] : $this->accessToken;
+        $this->agentId    = isset($params['agentId']) ? $params['agentId'] : $this->agentId;
+        $this->corpId     = isset($params['corpId']) ? $params['corpId'] : $this->corpId;
+        $this->corpSecret = isset($params['corpSecret']) ? $params['corpSecret'] : $this->corpSecret;
 
         return $this;
+    }
+
+    /**
+     * 设置全局 accessToken
+     * @param string $accessToken
+     */
+    public function setAccessToken(string $accessToken)
+    {
+        $this->accessToken = !empty($accessToken) ? $accessToken : $this->accessToken;
     }
 
     /**
@@ -81,7 +89,7 @@ class WeiXinAPI
      * @return mixed
      * @throws \Exception
      */
-    public function decryptCallBackMsg($params)
+    public function decryptCallBackMsg(array $params)
     {
         if (strlen($params['encodingAesKey']) != 43) {
             throw new \Exception("微信 API 接口调用失败: encodingAesKey 不合法");
@@ -107,7 +115,7 @@ class WeiXinAPI
      * @return mixed
      * @throws \Exception
      */
-    public function decryptUserMsg($params)
+    public function decryptUserMsg(array $params)
     {
         if (strlen($params['encodingAesKey']) != 43) {
             throw new \Exception("微信 API 接口调用失败: encodingAesKey 不合法");
@@ -159,7 +167,7 @@ class WeiXinAPI
         return $this->getIP('getAPIDomainIP');
     }
 
-    public function uploadMedia($type, $mediaPath)
+    public function uploadMedia(string $type, string $mediaPath)
     {
         if (empty($type)) {
             throw new \Exception("微信 API 接口调用失败: 素材类型为空");
@@ -214,7 +222,7 @@ class WeiXinAPI
      * @return array ['code' => '0: failure, 1: success, 2: accessToken expired', 'msg' => 'msg', 'data' => 'filePath']
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getMedia($mediaId)
+    public function getMedia(string $mediaId)
     {
         if (empty($mediaId)) {
             throw new \Exception("微信 API 接口调用失败: mediaId 为空");
@@ -268,7 +276,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendTextMessageToUsers($message, $users, $isSafe = false)
+    public function sendTextMessageToUsers(string $message, array $users, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'text', $users, [], [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
@@ -283,7 +291,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendTextMessageToParties($message, $parties, $isSafe = false)
+    public function sendTextMessageToParties(string $message, array $parties, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'text', [], $parties, [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
@@ -298,7 +306,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendTextMessageToTags($message, $tags, $isSafe = false)
+    public function sendTextMessageToTags(string $message, array $tags, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'text', [], [], $tags, $isSafe);
         $response    = $this->sendMessage($messageInfo);
@@ -313,7 +321,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendMarkDownMessageToUsers($message, $users, $isSafe = false)
+    public function sendMarkDownMessageToUsers(string $message, array $users, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'markdown', $users, [], [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
@@ -328,7 +336,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendMarkDownMessageToParties($message, $parties, $isSafe = false)
+    public function sendMarkDownMessageToParties(string $message, array $parties, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'markdown', [], $parties, [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
@@ -343,7 +351,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendMarkDownMessageToTags($message, $tags, $isSafe = false)
+    public function sendMarkDownMessageToTags(string $message, array $tags, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'markdown', [], [], $tags, $isSafe);
         $response    = $this->sendMessage($messageInfo);
@@ -353,9 +361,9 @@ class WeiXinAPI
     private function makeMessage($message, $type = 'text', $users, $parties, $tags, $isSafe)
     {
         $messageInfo = [
-            'touser'  => is_array($users) ? explode('|', $users) : $users,
-            'toparty' => explode('|', $parties),
-            'totag'   => explode('|', $tags),
+            'touser'  => is_array($users) ? implode('|', $users) : $users,
+            'toparty' => implode('|', $parties),
+            'totag'   => implode('|', $tags),
             'msgtype' => $type,
             'agentid' => $this->agentId,
             'safe'    => $isSafe ? 1 : 0
