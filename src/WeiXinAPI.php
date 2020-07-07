@@ -1,6 +1,7 @@
 <?php
-
 namespace Ubi\Utils;
+
+include_once '../library/weworkapi_php/callback/pkcs7Encoder.php';
 
 class WeiXinAPI
 {
@@ -461,8 +462,8 @@ class WeiXinAPI
     private function decryptMsg($encodingAesKey, $encrypt, $receiveId)
     {
         $decrypter = new \Prpcrypt($encodingAesKey);
-
         $result = $decrypter->decrypt($encrypt, $receiveId);
+
         if ($result[0] != 0) {
             throw new \Exception("微信 API 接口调用失败: 消息解密失败");
         }

@@ -119,6 +119,7 @@ class Prpcrypt
         } catch (Exception $e) {
             return array(ErrorCode::$DecryptAESError, null);
         }
+
         try {
             //删除PKCS#7填充
             $pkc_encoder = new PKCS7Encoder;

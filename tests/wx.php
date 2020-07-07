@@ -5,26 +5,22 @@ require_once '../vendor/autoload.php';
 use Ubi\Utils\WeiXinAPI;
 
 
-$wxapi = new WeiXinAPI();
-getToken($wxapi);
+$encodingAesKey = "abkJMUMW0317OWIhncQaWTx9cxUEFJCRz6cA1E7E6dm";
+$token = "te1Xomu2YR";
+$params = [
+    'corpId'=>'ww52f8d8da8cab19eb',
+    'corpSecret'=>'uLawHvmmfWw_sebn8aTsL_YBQaBiXUm1PMT05Yskfs8',
+    'agentId'=>1000019
+];
 
-$aaa = 'tests';
-$user = ['ZhengWenJun'];
-$res = $wxapi->sendTextMessageToUsers($aaa,$user);
+// 返回的url验证明文
+$wxcpt = new WeiXinAPI();
+$verifyParams   = [];
+$verifyParams['encodingAesKey'] = $encodingAesKey;
+$verifyParams['token']          = $token;
+$verifyParams['msgSignature']   = 'a1a276a8cf7e5a6947925b71e5070aaeb5c981e7';
+$verifyParams['timestamp']      = time();
+$verifyParams['nonce']          = time();
+$verifyParams['encrypt']        = 'WNTsJVgBQwyNdYKVtF9A1O7fJxqhLxDq1fPf7xvM8d9I+BcatbsPydIKh5az2cqSXdC8kwxt3ZBX3ijgTq3ccg==';
 
-
-var_dump($res);
-
-function getToken(WeiXinAPI $wxapi)
-{
-    $params = [
-        'corpId'=>'ww52f8d8da8cab19eb',
-        'corpSecret'=>'uLawHvmmfWw_sebn8aTsL_YBQaBiXUm1PMT05Yskfs8',
-        'agentId'=>1000019
-    ];
-
-    $wxapi->setParams($params);
-    $token = $wxapi->getAccessToken();
-
-    $wxapi->setAccessToken($token['data']['accessToken']);
-}
+$errCode = $wxcpt->decryptCallBackMsg($verifyParams);
