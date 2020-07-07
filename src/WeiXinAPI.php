@@ -494,11 +494,13 @@ class WeiXinAPI
     {
         $message['userName']   = (string)$xmlMsg->FromUserName;
         $message['createTime'] = (string)$xmlMsg->CreateTime;
+        $messageType           = (string)$xmlMsg->MsgType;
 
         $content = [];
-        if ($message['type'] == 'text') {
+        if ($messageType == 'text') {
             $content['type'] = 'text';
             $content['text'] = (string)$xmlMsg->Content;
+            $content['id']   = (string)$xmlMsg->MsgId;
         }
 
         $message['content'] = $content;
