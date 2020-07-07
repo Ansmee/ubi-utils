@@ -1,6 +1,8 @@
 <?php
+
 namespace Ubi\Utils;
 
+use DOMDocument;
 use Ubi\Utils\wexin\Prpcrypt;
 
 class WeiXinAPI
@@ -126,14 +128,12 @@ class WeiXinAPI
             throw new \Exception("微信 API 接口调用失败: 缺少必要的参数，token: {$params['token']}, encodingAesKey: {$params['encodingAesKey']}, msgSignature: {$params['msgSignature']}，timestamp: {$params['timestamp']}，nonce: {$params['nonce']}，data: {$params['data']}");
         }
 
-        $xmlparse = new \XMLParse();
-        $result   = $xmlparse->extract($params['data']);
-
-        if ($result[0] != 0) {
+        $encrypt = $this->parseEncryptFromXML($params['data']);
+        if (!$encrypt) {
             throw new \Exception("微信 API 接口调用失败: 消息内容解析失败");
         }
 
-        $params['encrypt'] = $result[1];
+        $params['encrypt'] = $encrypt;
 
         // 验证签名是否合法
         if (!$this->verifySignature($params)) {
@@ -462,7 +462,7 @@ class WeiXinAPI
     private function decryptMsg($encodingAesKey, $encrypt, $receiveId)
     {
         $decrypter = new Prpcrypt($encodingAesKey);
-        $result = $decrypter->decrypt($encrypt, $receiveId);
+        $result    = $decrypter->decrypt($encrypt, $receiveId);
 
         if (!is_array($result) || count($result) != 2) {
             throw new \Exception("微信 API 接口调用失败: 消息解密失败");
@@ -501,6 +501,15 @@ class WeiXinAPI
         }
 
         return $message;
+    }
+
+    public function parseEncryptFromXML($xmlData)
+    {
+        $xml = new DOMDocument();
+        $xml->loadXML($xmlData);
+        $array = $xml->getElementsByTagName('Encrypt');
+        $encrypt = $array->item(0)->nodeValue;
+        return $encrypt;
     }
 
     private function getAPI($pathName)
