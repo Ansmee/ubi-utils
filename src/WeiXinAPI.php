@@ -503,7 +503,7 @@ class WeiXinAPI
         return $message;
     }
 
-    public function parseEncryptFromXML($xmlData)
+    private function parseEncryptFromXML($xmlData)
     {
         $xml = new DOMDocument();
         $xml->loadXML($xmlData);
