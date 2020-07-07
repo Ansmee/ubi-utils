@@ -494,12 +494,14 @@ class WeiXinAPI
     {
         $message['userName']   = (string)$xmlMsg->FromUserName;
         $message['createTime'] = (string)$xmlMsg->CreateTime;
-        $message['type']       = (string)$xmlMsg->MsgType;
 
+        $content = [];
         if ($message['type'] == 'text') {
-            $message['text'] = (string)$xmlMsg->Content;
+            $content['type'] = 'text';
+            $content['text'] = (string)$xmlMsg->Content;
         }
 
+        $message['content'] = $content;
         return $message;
     }
 
@@ -507,7 +509,7 @@ class WeiXinAPI
     {
         $xml = new DOMDocument();
         $xml->loadXML($xmlData);
-        $array = $xml->getElementsByTagName('Encrypt');
+        $array   = $xml->getElementsByTagName('Encrypt');
         $encrypt = $array->item(0)->nodeValue;
         return $encrypt;
     }
