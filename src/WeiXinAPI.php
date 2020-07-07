@@ -101,9 +101,9 @@ class WeiXinAPI
         }
 
         // 验证签名是否合法
-        // if (!$this->verifySignature($params)) {
-        //     throw new \Exception("微信 API 接口调用失败: 回调消息签名验证失败");
-        // }
+        if (!$this->verifySignature($params)) {
+            throw new \Exception("微信 API 接口调用失败: 回调消息签名验证失败");
+        }
 
         // 解密加密之后的消息内容
         $decryptMsg = $this->decryptMsg($params['encodingAesKey'], $params['encrypt'], $this->corpId);
@@ -463,6 +463,10 @@ class WeiXinAPI
     {
         $decrypter = new Prpcrypt($encodingAesKey);
         $result = $decrypter->decrypt($encrypt, $receiveId);
+
+        if (!is_array($result) || count($result) != 2) {
+            throw new \Exception("微信 API 接口调用失败: 消息解密失败");
+        }
 
         if ($result[0] != 0) {
             throw new \Exception("微信 API 接口调用失败: 消息解密失败");

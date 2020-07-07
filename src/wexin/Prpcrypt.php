@@ -50,7 +50,7 @@ class Prpcrypt
             throw new \Exception('微信 API 接口调用失败: 回调消息解密失败，接受人不一致');
         }
 
-        return array(0, $xml_content);
+        return [0, $xml_content];
     }
 
     function decode($text)
