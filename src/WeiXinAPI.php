@@ -484,12 +484,13 @@ class WeiXinAPI
 
     private function getMessage($xmlMsg)
     {
-        $messageType           = (string)$xmlMsg->AgentID;
-        $message['userName']   = (string)$xmlMsg->FromUserName;
-        $message['createTime'] = (string)$xmlMsg->CreateTime;
-        $message['agentId']    = (string)$xmlMsg->CreateTime;
-        $message['id']         = (string)$xmlMsg->MsgId;
-        $message['type']       = $messageType;
+        $messageType             = (string)$xmlMsg->MsgType;
+        $message['fromUserName'] = (string)$xmlMsg->FromUserName;
+        $message['toUserName']   = (string)$xmlMsg->ToUserName;
+        $message['createTime']   = (string)$xmlMsg->CreateTime;
+        $message['agentId']      = (string)$xmlMsg->AgentID;
+        $message['id']           = (string)$xmlMsg->MsgId;
+        $message['type']         = $messageType;
 
         $content = [];
         if ($messageType == 'text') {
