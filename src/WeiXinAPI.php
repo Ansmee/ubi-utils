@@ -400,9 +400,9 @@ class WeiXinAPI
         }
 
         $data = [
-            'invaliduser'  => explode('|', $response->invaliduser),
-            'invalidparty' => explode('|', $response->invalidparty),
-            'invalidtag'   => explode('|', $response->invalidtag),
+            'invaliduser'  => isset($response->invaliduser) ? explode('|', $response->invaliduser) : [],
+            'invalidparty' => isset($response->invalidparty) ? explode('|', $response->invalidparty) : [],
+            'invalidtag'   => isset($response->invalidtag) ? explode('|', $response->invalidtag) : [],
         ];
 
         return ['code' => 1, 'msg' => 'ok', 'data' => $data];
