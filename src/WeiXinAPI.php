@@ -25,20 +25,12 @@ class WeiXinAPI
      */
     public function setParams(array $params)
     {
-        $this->agentId    = isset($params['agentId']) ? $params['agentId'] : $this->agentId;
-        $this->corpId     = isset($params['corpId']) ? $params['corpId'] : $this->corpId;
-        $this->corpSecret = isset($params['corpSecret']) ? $params['corpSecret'] : $this->corpSecret;
+        $this->accessToken = isset($params['accessToken']) ? $params['accessToken'] : $this->accessToken;
+        $this->agentId     = isset($params['agentId']) ? $params['agentId'] : $this->agentId;
+        $this->corpId      = isset($params['corpId']) ? $params['corpId'] : $this->corpId;
+        $this->corpSecret  = isset($params['corpSecret']) ? $params['corpSecret'] : $this->corpSecret;
 
         return $this;
-    }
-
-    /**
-     * 设置全局 accessToken
-     * @param string $accessToken
-     */
-    public function setAccessToken(string $accessToken)
-    {
-        $this->accessToken = !empty($accessToken) ? $accessToken : $this->accessToken;
     }
 
     /**
