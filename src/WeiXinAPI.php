@@ -317,8 +317,7 @@ class WeiXinAPI
     public function sendMarkDownMessageToUsers(string $message, array $users, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'markdown', $users, [], [], $isSafe);
-        $response    = $this->sendMessage($messageInfo);
-        return ['invaliduser' => $response['invaliduser']];
+        return $this->sendMessage($messageInfo);
     }
 
     /**
