@@ -269,7 +269,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendTextMessageToUsers(string $message, array $users, $isSafe = false)
+    public function sendTextMessageToUsers(string $message, $users, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'text', $users, [], [], $isSafe);
         $response    = $this->sendMessage($messageInfo);
@@ -314,7 +314,7 @@ class WeiXinAPI
      * @return array
      * @throws \Exception
      */
-    public function sendMarkDownMessageToUsers(string $message, array $users, $isSafe = false)
+    public function sendMarkDownMessageToUsers(string $message, $users, $isSafe = false)
     {
         $messageInfo = $this->makeMessage($message, 'markdown', $users, [], [], $isSafe);
         return $this->sendMessage($messageInfo);
