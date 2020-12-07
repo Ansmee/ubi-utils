@@ -160,6 +160,12 @@ class WeiXinAPI
         return $this->getIP('getAPIDomainIP');
     }
 
+    /**
+     * @param string $type ['image', 'voice', 'video', 'file']
+     * @param string $mediaPath
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function uploadMedia(string $type, string $mediaPath)
     {
         if (empty($type)) {
@@ -350,6 +356,28 @@ class WeiXinAPI
         return ['invalidtag' => $response['invalidtag']];
     }
 
+    /**
+     * @param string $mediaId
+     * @param $users [user1, user2, user3] | @all
+     * @param bool $isSafe
+     * @return array
+     * @throws \Exception
+     */
+    public function sendImageMessageToUsers(string $mediaId, $users, $isSafe = false)
+    {
+        if (empty($mediaId)) {
+            throw new \Exception("微信 API 接口调用失败: mediaId 为空");
+        }
+
+        if (empty($users)) {
+            throw new \Exception("微信 API 接口调用失败: 消息接收人 为空");
+        }
+
+        $messageInfo = $this->makeMessage($mediaId, 'image', $users, [], [], $isSafe);
+        $response    = $this->sendMessage($messageInfo);
+        return $response;
+    }
+
     private function makeMessage($message, $type = 'text', $users, $parties, $tags, $isSafe)
     {
         $messageInfo = [
@@ -367,6 +395,10 @@ class WeiXinAPI
 
         if ($type == 'markdown') {
             $messageInfo['markdown'] = ['content' => $message];
+        }
+
+        if ($type = 'image') {
+            $messageInfo['image'] = ['media_id' => $message];
         }
 
         return $messageInfo;

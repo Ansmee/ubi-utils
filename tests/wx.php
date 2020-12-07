@@ -6,25 +6,23 @@ use Ubi\Utils\WeiXinAPI;
 
 
 $params = [
-    'corpId'     => 'ww52f8d8da8cab19eb',
-    'corpSecret' => 'uLawHvmmfWw_sebn8aTsL_YBQaBiXUm1PMT05Yskfs8',
-    'agentId'    => 1000019
+    'corpId'      => 'ww52f8d8da8cab19eb',
+    'corpSecret'  => 'XRNQP0IAZO--LqWnTAydeZ64ysWv40BuLxGMgJJ2ZiU',
+    'agentId'     => '1000036',
+    'accessToken' => 'HFV2oTw5kfMet5XngmJBolDUvFbTH5fIoAVu4k9Y-XFgUSN1ldaHKqMCnD3Hi_HBmymHr-8RTQQ2Iq_UatuamgV7x35AdtzOJs-IidL-iXByEDQACNVpBxgNqEvCkTS6hOpdvg_MKo1I3LdU5fweUge7zQi_rZY0h5twqHhTDodpsP5WUuGG0T6MlNptaXb6OcKy-2wOiJHClYF4LdNtyQ'
 ];
 
 // 返回的url验证明文
 $wxcpt = new WeiXinAPI();
 $wxcpt->setParams($params);
 
-$xml = "<xml><ToUserName><![CDATA[ww52f8d8da8cab19eb]]></ToUserName><Encrypt><![CDATA[CN+2nN4HpHOo9HnqQPteFsGz7/bvg8gmthEdk9T9ttMBw2E38Ttg4VMg4IjxN1G2NntOUEv23ZTshxXk3Jb1R/wJZv3JtIaxzrF+RIQIeRq3VieS6B73hDzRQiloVp4hMKxbLKPLb7Oo51h9LpF9KbUzU1p3kAkLBkwDdPlc6682MeTwoeE938uz+aWQOi8+ZIQ+Qi8MzQk6mKCLMUoJ1HTjgvsjxr/151smp+NKxsqwmj8LGGF0sTfWkvXhWCkNMskaX0TE3Yv61RWnzMZw8joi07XWUFIr8uNpKkO6HMkz0fhdRFnrQy5tnsO+TUEPp/9MsYAf6xVzkrHjqxTrhrDJOAfDZgZgxleu+PrdF3IdGTSofnD3+KWVU2Gq5wnGZgQN+KRfaLQFKGGVhxJaaAZZjP1u+MoC0s2abGRtO2s=]]></Encrypt><AgentID><![CDATA[1000019]]></AgentID></xml>";
-$encodingAesKey                 = "abkJMUMW0317OWIhncQaWTx9cxUEFJCRz6cA1E7E6dm";
-$token                          = "te1Xomu2YR";
-$verifyParams['encodingAesKey'] = $encodingAesKey;
-$verifyParams['token']          = $token;
-$verifyParams['msgSignature']   = '8ea1ef7f164143925f56c9fbdc4d4d2720180f16';
-$verifyParams['timestamp']      = '1594103091';
-$verifyParams['nonce']          = '1594670948';
-$verifyParams['data'] = $xml;
 
-$res = $wxcpt->decryptUserMsg($verifyParams);
+// var_dump($wxcpt->getAccessToken());
 
+// $res = $wxcpt->uploadMedia('image', './logo.png');
+// var_dump($res);
+
+$mediaId = '3C8p1QLz8R5eEokpYC-HDIfAc4EkrsxP1rvOJhngF9EU8PiJje3Mc6xzlY7aBsYjG';
+
+$res = $wxcpt->sendImageMessageToUsers($mediaId, 'ZhengWenJun');
 var_dump($res);
