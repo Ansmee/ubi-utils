@@ -389,15 +389,15 @@ class WeiXinAPI
             'safe'    => $isSafe ? 1 : 0
         ];
 
-        if ($type == 'text') {
+        if ($type === 'text') {
             $messageInfo['text'] = ['content' => $message];
         }
 
-        if ($type == 'markdown') {
+        if ($type === 'markdown') {
             $messageInfo['markdown'] = ['content' => $message];
         }
 
-        if ($type = 'image') {
+        if ($type === 'image') {
             $messageInfo['image'] = ['media_id' => $message];
         }
 
@@ -423,6 +423,7 @@ class WeiXinAPI
         $params         = [
             'access_token' => $accessToken
         ];
+
         $originResponse = $this->httpClient->post($api, $params, $message);
         $response       = $this->handleResponse($originResponse);
 
