@@ -391,14 +391,17 @@ class WeiXinAPI
 
         if ($type === 'text') {
             $messageInfo['text'] = ['content' => $message];
+            return $messageInfo;
         }
 
         if ($type === 'markdown') {
             $messageInfo['markdown'] = ['content' => $message];
+            return $messageInfo;
         }
 
         if ($type === 'image') {
             $messageInfo['image'] = ['media_id' => $message];
+            return $messageInfo;
         }
 
         return $messageInfo;
